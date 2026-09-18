@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurum House</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1015;
+    --surface:#141C22;
+    --surface-2:#1B252C;
+    --hairline:#2B3841;
+    --gold:#D9A94E;
+    --gold-bright:#F0C878;
+    --pink:#DD6E56;
+    --violet:#1F9D74;
+    --teal:#2FBF8F;
+    --ivory:#F1EDE2;
+    --muted:#8FA0A6;
+    --danger:#E15A5A;
+    --whatsapp:#25D366;
+    --telegram:#2AABEE;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    font-family:'Inter',sans-serif;
+    color:var(--ivory);
+    display:flex;justify-content:center;
+  }
+  body.rtl{font-family:'Tajawal','Inter',sans-serif;}
+  body[dir="rtl"] .frame{direction:rtl;}
+  .serif{font-family:'Fraunces',serif;}
+  body.rtl .serif{font-family:'Tajawal','Fraunces',serif;}
+
+  .frame{
+    width:390px;min-height:100vh;position:relative;overflow-x:hidden;
+    background:radial-gradient(1000px 600px at 50% -10%, #1B2A2A 0%, var(--ink) 55%);
+  }
+  .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);width:340px;
+    background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:14px 16px;
+    display:flex;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.4);
+    opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;z-index:50;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast .ic{width:30px;height:30px;border-radius:50%;background:rgba(47,191,143,.18);color:var(--teal);
+    display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+  .toast .msg{font-size:12.5px;color:var(--ivory);}
+  .screen{display:none;min-height:100vh;flex-direction:column;padding-bottom:90px;}
+  .screen.active{display:flex;}
+  .screen.no-nav{padding-bottom:24px;}
+
+  .statusbar{display:flex;justify-content:space-between;padding:16px 22px 4px;font-size:13px;color:var(--muted);}
+  .topnav{display:flex;align-items:center;justify-content:space-between;padding:10px 18px 4px;gap:10px;}
+  .topnav .left{display:flex;align-items:center;gap:12px;}
+  .icon-btn{width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--hairline);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;}
+  .icon-btn svg{width:17px;height:17px;color:var(--ivory);}
+  body.rtl .icon-btn svg{transform:scaleX(-1);}
+  .topnav h2{font-family:'Fraunces',serif;font-weight:500;font-size:15.5px;margin:0;}
+  body.rtl .topnav h2{font-family:'Tajawal',sans-serif;font-weight:700;}
+
+  .lang-toggle{display:flex;background:var(--surface);border:1px solid var(--hairline);border-radius:999px;padding:3px;}
+  .lang-toggle button{border:none;background:none;padding:6px 12px;border-radius:999px;font-size:12px;color:var(--muted);cursor:pointer;font-family:inherit;}
+  .lang-toggle button.on{background:var(--gold);color:#241505;font-weight:700;}
+
+  .btn-primary{border:none;border-radius:13px;padding:16px;font-weight:700;font-size:15px;cursor:pointer;
+    background:linear-gradient(135deg,var(--pink),var(--gold));color:#241505;font-family:inherit;}
+  .btn-ghost{border:1px solid var(--hairline);background:var(--surface);color:var(--ivory);border-radius:13px;padding:15px;font-size:14.5px;cursor:pointer;font-family:inherit;font-weight:600;}
+
+  /* ---------- HOME / LANDING ---------- */
+  #scr-home .hero{padding:26px 22px 10px;text-align:center;}
+  #scr-home .mark{width:64px;height:64px;border-radius:20px;margin:0 auto 14px;
+    background:linear-gradient(135deg,var(--pink),var(--gold));display:flex;align-items:center;justify-content:center;font-size:28px;}
+  #scr-home h1{font-size:28px;margin:0 0 6px;}
+  #scr-home .tag{font-size:13.5px;color:var(--muted);max-width:280px;margin:0 auto;line-height:1.5;}
+  .hero-cta{display:flex;gap:10px;padding:22px 22px 0;}
+  .hero-cta .btn-primary,.hero-cta .btn-ghost{flex:1;}
+  .feature-list{padding:26px 22px 0;display:flex;flex-direction:column;gap:12px;}
+  .feature{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:14px 16px;}
+  .feature .fi{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:19px;}
+  .feature .fi.a{background:rgba(243,185,78,.16);}
+  .feature .fi.b{background:rgba(255,107,147,.16);}
+  .feature .fi.c{background:rgba(47,217,166,.16);}
+  .feature .t{font-size:13.5px;font-weight:600;}
+  .feature .s{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .guest-link{text-align:center;padding:22px 22px 0;font-size:12.5px;color:var(--muted);}
+  .guest-link a{color:var(--gold-bright);text-decoration:none;font-weight:600;}
+
+  /* ---------- AUTH ---------- */
+  .auth-body{padding:6px 22px 0;flex:1;display:flex;flex-direction:column;}
+  .field{margin-bottom:14px;}
+  .field label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;}
+  .field input{width:100%;background:var(--surface-2);border:1px solid var(--hairline);border-radius:12px;
+    padding:14px 16px;font-size:14.5px;color:var(--ivory);font-family:inherit;outline:none;}
+  .field input:focus{border-color:var(--gold);}
+  .switch-row{display:flex;align-items:center;gap:10px;margin:2px 0 20px;}
+  .sw{width:38px;height:22px;border-radius:999px;background:var(--surface-2);border:1px solid var(--hairline);position:relative;cursor:pointer;flex-shrink:0;}
+  .sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--muted);transition:.15s;}
+  .sw.on{background:rgba(243,185,78,.2);border-color:var(--gold);}
+  .sw.on::after{transform:translateX(16px);background:var(--gold);}
+  .switch-row span{font-size:12.5px;color:var(--muted);}
+  .auth-switch{text-align:center;padding:18px 0;font-size:12.5px;color:var(--muted);}
+  .auth-switch a{color:var(--gold-bright);text-decoration:none;font-weight:600;cursor:pointer;}
+
+  /* ---------- LOBBY ---------- */
+  .who{display:flex;align-items:center;gap:10px;}
+  .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold-bright),var(--pink));
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:15px;color:#241505;font-weight:700;}
+  .who .greet{font-size:11px;color:var(--muted);}
+  .who .name{font-size:14px;font-weight:700;}
+
+  .wallet-strip{margin:16px 20px 0;background:linear-gradient(135deg,#2C2350,#1C1732);border:1px solid var(--hairline);
+    border-radius:16px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;}
+  .wallet-strip .l{font-size:11px;color:var(--muted);}
+  .wallet-strip .v{font-family:'Fraunces',serif;font-size:20px;color:var(--gold-bright);}
+  .wallet-strip button{background:linear-gradient(135deg,var(--pink),var(--gold));border:none;border-radius:10px;
+    padding:9px 14px;font-size:12.5px;font-weight:700;color:#241505;cursor:pointer;font-family:inherit;}
+
+  .section-head{display:flex;align-items:center;justify-content:space-between;padding:22px 20px 10px;}
+  .section-head h4{font-family:'Fraunces',serif;font-weight:600;font-size:15px;margin:0;}
+  body.rtl .section-head h4{font-family:'Tajawal',sans-serif;}
+  .section-head a{font-size:11.5px;color:var(--gold-bright);text-decoration:none;cursor:pointer;}
+  .allgames-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 20px 0;}
+
+  .chips{display:flex;gap:8px;padding:0 20px;overflow-x:auto;}
+  .chip{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--hairline);
+    border-radius:999px;padding:9px 14px;font-size:12.5px;color:var(--muted);white-space:nowrap;flex-shrink:0;cursor:pointer;}
+  .chip.active{background:rgba(243,185,78,.16);border-color:var(--gold);color:var(--gold-bright);}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 20px 0;}
+  .tile{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;overflow:hidden;cursor:pointer;}
+  .tile .art{height:84px;display:flex;align-items:center;justify-content:center;font-size:30px;position:relative;}
+  .tile .art.g1{background:linear-gradient(150deg,#3A2A5C,#221A3B);}
+  .tile .art.g2{background:linear-gradient(150deg,#2C3B55,#1A2233);}
+  .tile .live-tag{position:absolute;top:8px;left:8px;background:rgba(255,107,147,.9);color:#2B0713;font-size:9px;font-weight:700;
+    padding:3px 7px;border-radius:999px;display:flex;align-items:center;gap:4px;}
+  body.rtl .tile .live-tag{left:auto;right:8px;}
+  .tile .live-tag i{width:5px;height:5px;border-radius:50%;background:#2B0713;}
+  .tile .info{padding:10px 12px 12px;}
+  .tile .info .t{font-size:12.5px;font-weight:700;}
+  .tile .info .s{font-size:10.5px;color:var(--muted);margin-top:2px;}
+
+  .rail{display:flex;gap:12px;padding:14px 20px 4px;overflow-x:auto;}
+  .slot-card{width:112px;flex-shrink:0;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;overflow:hidden;cursor:pointer;}
+  .slot-card .art{height:100px;background:linear-gradient(160deg,#33255A,#180F2C);display:flex;align-items:center;justify-content:center;font-size:32px;}
+  .slot-card .info{padding:8px 10px 10px;}
+  .slot-card .t{font-size:11.5px;font-weight:700;}
+  .slot-card .s{font-size:10px;color:var(--muted);margin-top:2px;}
+
+  .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:390px;background:var(--surface);
+    border-top:1px solid var(--hairline);display:flex;justify-content:space-around;align-items:center;padding:10px 6px 18px;z-index:20;}
+  .nav .item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+  .nav .item svg{width:20px;height:20px;color:var(--muted);}
+  .nav .item.active svg{color:var(--gold);}
+  .nav .item span{font-size:9.5px;color:var(--muted);}
+  .nav .item.active span{color:var(--gold-bright);}
+
+  /* ---------- GAME SCREEN ---------- */
+  .game-bal{font-size:12.5px;color:var(--gold-bright);font-weight:700;}
+  .media{margin:10px 18px 0;height:180px;border-radius:16px;border:1px solid var(--hairline);position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#2C2350,#140F24);}
+  .media .live-tag{position:absolute;top:10px;left:10px;background:rgba(255,107,147,.9);color:#2B0713;font-size:10px;font-weight:700;
+    padding:4px 9px;border-radius:999px;display:flex;align-items:center;gap:5px;}
+  body.rtl .media .live-tag{left:auto;right:10px;}
+  .media .live-tag i{width:5px;height:5px;border-radius:50%;background:#2B0713;}
+  .media .dealer{position:absolute;bottom:10px;right:12px;font-size:11px;color:var(--muted);}
+  body.rtl .media .dealer{right:auto;left:12px;}
+  .wheel{width:100px;height:100px;border-radius:50%;border:6px solid var(--gold);transition:transform 2.2s cubic-bezier(.2,.8,.2,1);
+    background:conic-gradient(var(--pink) 0 8%,#1a1430 8% 16%,var(--pink) 16% 24%,#1a1430 24% 32%,var(--pink) 32% 40%,#1a1430 40% 48%,var(--pink) 48% 56%,#1a1430 56% 64%,var(--pink) 64% 72%,#1a1430 72% 80%,var(--pink) 80% 88%,#1a1430 88% 100%);}
+  .cards-face{font-size:44px;display:flex;gap:14px;}
+  .dice-face{font-size:42px;display:flex;gap:10px;}
+
+  .history{display:flex;gap:6px;padding:12px 18px 0;overflow-x:auto;}
+  .history .n{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#fff;}
+  .history .red{background:var(--pink);color:#2B0713;}
+  .history .black{background:#2E2650;}
+  .history .g{background:var(--teal);color:#062A1D;}
+
+  .board-wrap{margin:14px 18px 0;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:12px;}
+  .board{display:none;}
+  .board.on{display:block;}
+  .row0{display:flex;justify-content:center;margin-bottom:4px;}
+  .zero{width:34px;height:60px;background:var(--teal);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#062A1D;font-weight:700;}
+  .numgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-top:4px;}
+  .cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;}
+  .cell.red{background:var(--pink);color:#2B0713;}
+  .cell.black{background:#2E2650;}
+  .outside{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:8px;}
+  .outside div{background:var(--surface-2);border:1px solid var(--hairline);border-radius:6px;text-align:center;padding:8px 0;font-size:10px;color:var(--muted);}
+
+  .bacc-opts{display:flex;gap:8px;}
+  .bacc-opts div{flex:1;text-align:center;padding:16px 4px;border-radius:12px;border:1px solid var(--hairline);background:var(--surface-2);font-size:12.5px;font-weight:700;}
+  .bacc-opts .player{color:#7FB4FF;}
+  .bacc-opts .tie{color:var(--teal);}
+  .bacc-opts .banker{color:var(--pink);}
+
+  .sicbo-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .sicbo-opts div{text-align:center;padding:14px 4px;border-radius:12px;border:1px solid var(--hairline);background:var(--surface-2);font-size:12px;color:var(--muted);}
+
+  .reels{display:none;grid-template-columns:repeat(5,1fr);gap:6px;background:var(--surface-2);border-radius:12px;padding:10px;margin:14px 18px 0;}
+  .reels.on{display:grid;}
+  .reel{display:flex;flex-direction:column;gap:6px;}
+  .sym{aspect-ratio:1;border-radius:8px;background:#160F28;border:1px solid var(--hairline);display:flex;align-items:center;justify-content:center;font-size:22px;transition:transform .2s ease, opacity .2s ease;}
+  .sym.win{border-color:var(--gold);background:rgba(243,185,78,.12);}
+  .spin-lbl{text-align:center;font-size:11px;color:var(--muted);padding:10px 0 0;}
+
+  .chips-row{display:flex;justify-content:center;gap:10px;padding:14px 18px 0;}
+  .chip-token{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,.2);cursor:pointer;}
+  .chip-token.sel{outline:2px solid var(--gold);outline-offset:2px;}
+  .chip-token.c1{background:var(--teal);color:#062A1D;}
+  .chip-token.c2{background:#4E7BFF;}
+  .chip-token.c3{background:var(--pink);color:#2B0713;}
+  .chip-token.c4{background:#241A3F;}
+
+  .game-footer{display:flex;align-items:center;gap:10px;padding:16px 18px 0;}
+  .game-footer .info{flex:1;background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:12px 14px;}
+  .game-footer .info .l{font-size:10px;color:var(--muted);}
+  .game-footer .info .v{font-size:15px;color:var(--ivory);font-family:'Fraunces',serif;}
+  .game-footer .go-btn{background:linear-gradient(135deg,var(--pink),var(--gold));border:none;border-radius:12px;padding:0 22px;height:52px;font-weight:700;color:#241505;font-size:13px;cursor:pointer;font-family:inherit;}
+
+  /* ---------- WALLET ---------- */
+  .balance-card{margin:18px 20px 0;background:linear-gradient(135deg,#33255A,#1C1732);border:1px solid var(--hairline);border-radius:20px;padding:24px 22px;text-align:center;}
+  .balance-card .lbl{font-size:12px;color:var(--muted);}
+  .balance-card .amt{font-family:'Fraunces',serif;font-size:32px;color:var(--gold-bright);margin:6px 0 2px;}
+  body.rtl .balance-card .amt{font-family:'Tajawal',sans-serif;}
+  .tabs{display:flex;margin:20px 20px 0;background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:4px;}
+  .tabs .t{flex:1;text-align:center;padding:11px;font-size:13px;color:var(--muted);border-radius:9px;cursor:pointer;}
+  .tabs .t.active{background:var(--gold);color:#241505;font-weight:700;}
+  .amounts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px 20px 0;}
+  .amounts .a{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:13px 0;text-align:center;font-size:13.5px;cursor:pointer;}
+  .amounts .a.sel{border-color:var(--gold);color:var(--gold-bright);background:rgba(243,185,78,.1);}
+
+  /* ---------- DEPOSIT/WITHDRAW METHOD ---------- */
+  .method{margin:16px 20px 0;background:var(--surface);border:1px solid var(--hairline);border-radius:16px;overflow:hidden;cursor:pointer;}
+  .method .head{display:flex;align-items:center;gap:12px;padding:16px;}
+  .method .ic{width:42px;height:42px;border-radius:12px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+  .method .t{font-size:14px;font-weight:700;}
+  .method .s{font-size:11px;color:var(--muted);margin-top:2px;}
+  .method .chev{margin-left:auto;width:16px;height:16px;color:var(--muted);transition:transform .15s ease;}
+  body.rtl .method .chev{margin-left:0;margin-right:auto;transform:scaleX(-1);}
+  .method.open .chev{transform:rotate(90deg);}
+  body.rtl .method.open .chev{transform:scaleX(-1) rotate(90deg);}
+  .method .panel{max-height:0;overflow:hidden;transition:max-height .2s ease;border-top:1px solid var(--hairline);}
+  .method.open .panel{max-height:600px;}
+  .panel-inner{padding:16px;}
+  .coin-row{display:flex;gap:8px;margin-bottom:14px;}
+  .coin{flex:1;text-align:center;padding:10px 4px;border:1px solid var(--hairline);border-radius:10px;font-size:11.5px;color:var(--muted);cursor:pointer;}
+  .coin.sel{border-color:var(--gold);color:var(--gold-bright);background:rgba(243,185,78,.1);}
+  .qr{width:140px;height:140px;margin:6px auto 14px;background:repeating-linear-gradient(45deg,#2A2148,#2A2148 6px,#1a1430 6px,#1a1430 12px);
+    border-radius:12px;border:1px solid var(--hairline);display:flex;align-items:center;justify-content:center;font-size:10.5px;color:var(--muted);}
+  .addr{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--hairline);border-radius:10px;padding:12px;}
+  .addr span{font-size:11px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .addr button{background:none;border:none;color:var(--gold-bright);font-size:11.5px;cursor:pointer;font-family:inherit;font-weight:700;}
+  .note{font-size:10.5px;color:var(--muted);margin-top:10px;line-height:1.5;}
+  .agent-card{background:var(--surface-2);border:1px solid var(--hairline);border-radius:12px;padding:14px;margin-bottom:10px;}
+  .agent-card .row{display:flex;justify-content:space-between;align-items:center;}
+  .agent-card .name{font-size:13px;font-weight:700;}
+  .agent-card .meta{font-size:10.5px;color:var(--muted);margin-top:2px;}
+  .agent-card .status{font-size:10px;color:var(--teal);border:1px solid var(--teal);border-radius:999px;padding:3px 8px;}
+  .agent-card button{margin-top:10px;width:100%;padding:10px;border-radius:9px;border:1px solid var(--gold);background:none;color:var(--gold-bright);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .agent-chat-row{display:flex;gap:8px;margin-top:8px;}
+  .agent-chat-row a{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 4px;border-radius:9px;
+    text-decoration:none;font-size:11.5px;font-weight:700;font-family:inherit;}
+  .agent-chat-row a svg{width:15px;height:15px;}
+  .wa-btn{background:rgba(37,211,102,.14);border:1px solid var(--whatsapp);color:#7CE8A7;}
+  .tg-btn{background:rgba(42,171,238,.14);border:1px solid var(--telegram);color:#8FD2F7;}
+  .agent-divider{text-align:center;font-size:10px;color:var(--muted);margin:12px 0 2px;}
+
+  /* ---------- PROFILE ---------- */
+  .profile-hero{margin:16px 20px 0;background:linear-gradient(135deg,#1B2E28,#141C22);border:1px solid var(--hairline);
+    border-radius:20px;padding:22px;text-align:center;}
+  .profile-hero .av{width:72px;height:72px;border-radius:50%;margin:0 auto 12px;background:linear-gradient(135deg,var(--gold-bright),var(--violet));
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:28px;color:#0B1015;font-weight:700;}
+  .profile-hero .nm{font-size:17px;font-weight:700;}
+  .profile-hero .em{font-size:12px;color:var(--muted);margin-top:2px;}
+  .profile-hero .badges{display:flex;justify-content:center;gap:8px;margin-top:12px;}
+  .badge{font-size:10.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--hairline);color:var(--muted);display:flex;align-items:center;gap:5px;}
+  .badge.vip{border-color:var(--gold);color:var(--gold-bright);background:rgba(217,169,78,.1);}
+  .badge.verified{border-color:var(--teal);color:var(--teal);background:rgba(47,191,143,.1);}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 20px 0;}
+  .stat-box{background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:14px 16px;}
+  .stat-box .l{font-size:10.5px;color:var(--muted);}
+  .stat-box .v{font-family:'Fraunces',serif;font-size:18px;margin-top:3px;}
+  body.rtl .stat-box .v{font-family:'Tajawal',sans-serif;}
+
+  .quick-row{display:flex;gap:10px;padding:16px 20px 0;}
+  .quick-row button{flex:1;padding:12px 4px;border-radius:12px;border:1px solid var(--hairline);background:var(--surface);
+    color:var(--ivory);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+  .info-list{margin:16px 20px 0;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;overflow:hidden;}
+  .info-list .row{display:flex;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--hairline);font-size:12.5px;}
+  .info-list .row:last-child{border-bottom:none;}
+  .info-list .row .k{color:var(--muted);}
+  .info-list .row .v{color:var(--ivory);font-weight:600;}
+
+  .settings-list{margin:14px 20px 0;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;overflow:hidden;}
+  .settings-list .row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--hairline);}
+  .settings-list .row:last-child{border-bottom:none;}
+  .settings-list .t{font-size:12.5px;font-weight:600;}
+  .settings-list .s{font-size:10.5px;color:var(--muted);margin-top:2px;}
+
+  .logout-btn{margin:18px 20px 0;width:calc(100% - 40px);padding:14px;border-radius:12px;border:1px solid var(--danger);
+    background:none;color:var(--danger);font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;}
+
+  /* ---------- SUPPORT ---------- */
+  .support-hero{margin:16px 20px 0;background:linear-gradient(135deg,#2C3B7A,#1C1732);border:1px solid var(--hairline);border-radius:18px;padding:18px;}
+  .support-hero .t{font-size:15px;font-weight:700;}
+  .support-hero .s{font-size:11.5px;color:var(--muted);margin-top:4px;}
+  .support-hero button{margin-top:12px;width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--teal),#4E7BFF);color:#04231A;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;}
+  .faq{margin:0 20px;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;overflow:hidden;}
+  .faq .row{padding:14px 16px;border-bottom:1px solid var(--hairline);font-size:12.5px;}
+  .faq .row:last-child{border-bottom:none;}
+  .faq .row .q{font-weight:700;}
+  .faq .row .a{color:var(--muted);margin-top:4px;font-size:11.5px;line-height:1.5;}
+  .contact-row{display:flex;gap:10px;padding:14px 20px 0;}
+  .contact-row .c{flex:1;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:14px;text-align:center;}
+  .contact-row .c .ic{font-size:20px;}
+  .contact-row .c .t{font-size:11.5px;font-weight:700;margin-top:6px;}
+  .contact-row .c .s{font-size:10px;color:var(--muted);margin-top:2px;}
+</style>
+</head>
+<body>
+<div class="frame">
+
+<!-- ============ HOME ============ -->
+<div class="screen active no-nav" id="scr-home">
+  <div class="statusbar"><span>11:24</span><span>◎ ⌁ ⚡</span></div>
+  <div class="topnav">
+    <div></div>
+    <div class="lang-toggle">
+      <button class="on" onclick="setLang('en')">EN</button>
+      <button onclick="setLang('ar')">AR</button>
+    </div>
+  </div>
+  <div class="hero">
+    <div class="mark">♠</div>
+    <h1 class="serif" data-i18n="brand">Aurum House</h1>
+    <p class="tag" data-i18n="homeTag">Live dealer tables, slots and sports — one account, instant play.</p>
+  </div>
+  <div class="hero-cta">
+    <button class="btn-primary" data-i18n="signUp" onclick="go('scr-signup')">Sign up</button>
+    <button class="btn-ghost" data-i18n="logIn" onclick="go('scr-login')">Log in</button>
+  </div>
+  <div class="feature-list">
+    <div class="feature">
+      <div class="fi a">🎥</div>
+      <div><div class="t" data-i18n="feat1t">Live dealers, 24/7</div><div class="s" data-i18n="feat1s">Real tables streamed in HD, no waiting.</div></div>
+    </div>
+    <div class="feature">
+      <div class="fi b">🔐</div>
+      <div><div class="t" data-i18n="feat2t">Crypto or local agent</div><div class="s" data-i18n="feat2s">Deposit and withdraw the way that suits you.</div></div>
+    </div>
+    <div class="feature">
+      <div class="fi c">💬</div>
+      <div><div class="t" data-i18n="feat3t">Support that answers</div><div class="s" data-i18n="feat3s">Live chat, typically under 2 minutes.</div></div>
+    </div>
+  </div>
+  <div class="guest-link" data-i18n="guestLine">Just exploring? <a onclick="go('scr-lobby')" data-i18n="guestLink">Browse the lobby</a></div>
+</div>
+
+<!-- ============ SIGN UP ============ -->
+<div class="screen no-nav" id="scr-signup">
+  <div class="statusbar"><span>11:25</span><span>◎ ⌁ ⚡</span></div>
+  <div class="topnav">
+    <div class="left"><div class="icon-btn" onclick="go('scr-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg></div><h2 data-i18n="createAccount">Create account</h2></div>
+    <div class="lang-toggle"><button class="on" onclick="setLang('en')">EN</button><button onclick="setLang('ar')">AR</button></div>
+  </div>
+  <div class="auth-body">
+    <div class="field"><label data-i18n="fullName">Full name</label><input type="text" data-i18n-ph="fullNamePh" placeholder="Alex Morgan"></div>
+    <div class="field"><label data-i18n="email">Email</label><input type="email" placeholder="alex@example.com"></div>
+    <div class="field"><label data-i18n="password">Password</label><input type="password" placeholder="••••••••"></div>
+    <div class="switch-row"><div class="sw" onclick="this.classList.toggle('on')"></div><span data-i18n="agreeTerms">I confirm I'm 18+ and agree to the Terms</span></div>
+    <button class="btn-primary" data-i18n="createAccountBtn" onclick="go('scr-lobby')">Create account</button>
+    <div class="auth-switch" data-i18n="haveAccount">Already have an account? <a onclick="go('scr-login')" data-i18n="logIn2">Log in</a></div>
+  </div>
+</div>
+
+<!-- ============ LOGIN ============ -->
+<div class="screen no-nav" id="scr-login">
+  <div class="statusbar"><span>11:26</span><span>◎ ⌁ ⚡</span></div>
+  <div class="topnav">
+    <div class="left"><div class="icon-btn" onclick="go('scr-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg></div><h2 data-i18n="welcomeBack">Welcome back</h2></div>
+    <div class="lang-toggle"><button class="on" onclick="setLang('en')">EN</button><button onclick="setLang('ar')">AR</button></div>
+  </div>
+  <div class="auth-body">
+    <div class="field"><label data-i18n="email">Email</label><input type="email" placeholder="alex@example.com"></div>
+    <div class="field"><label data-i18n="password">Password</label><input type="password" placeholder="••••••••"></div>
+    <div class="switch-row"><div class="sw on" onclick="this.classList.toggle('on')"></div><span data-i18n="keepSignedIn">Keep me signed in</span></div>
+    <button class="btn-primary" data-i18n="logInBtn" onclick="go('scr-lobby')">Log in</button>
+    <div class="auth-switch" data-i18n="noAccount">New here? <a onclick="go('scr-signup')" data-i18n="signUp2">Create an account</a></div>
+  </div>
+</div>
+
+<!-- ============ LOBBY ============ -->
+<div class="screen" id="scr-lobby">
+  <div class="statusbar"><span>11:27</span><span>◎ ⌁ ⚡</span></div>
+  <div class="topnav">
+    <div class="who"><div class="avatar">A</div><div><div class="greet" data-i18n="welcome">Welcome back</div><div class="name">Alex M.</div></div></div>
+    <div class="lang-toggle"><button class="on" onclick="setLang('en')">EN</button><button onclick="setLang('ar')">AR</button></div>
+  </div>
+  <div class="wallet-strip">
+    <div><div class="l" data-i18n="balance">Balance</div><div class="v">$2,430.00</div></div>
+    <button data-i18n="deposit" onclick="go('scr-wallet')">Deposit</button>
+  </div>
+
+  <div class="section-head"><h4 data-i18n="categories">Categories</h4></div>
+  <div class="chips">
+    <div class="chip active" data-i18n="chipLive">🎥 Live Casino</div>
+    <div class="chip" data-i18n="chipSlots">🎰 Slots</div>
+    <div class="chip" data-i18n="chipSports">🏆 Sports</div>
+    <div class="chip" data-i18n="chipTable">🃏 Table</div>
+  </div>
+
+  <div class="section-head"><h4 data-i18n="liveNow">Live now</h4><a data-i18n="seeAll" onclick="openAllGames('live')">See all</a></div>
+  <div class="grid2">
+    <div class="tile" onclick="openGame('roulette')">
+      <div class="art g1">🎡<div class="live-tag"><i></i><span data-i18n="live">LIVE</span></div></div>
+      <div class="info"><div class="t" data-i18n="gRoulette">Roulette</div><div class="s" data-i18n="tables6">6 tables</div></div>
+    </div>
+    <div class="tile" onclick="openGame('baccarat')">
+      <div class="art g2">🂡<div class="live-tag"><i></i><span data-i18n="live">LIVE</span></div></div>
+      <div class="info"><div class="t" data-i18n="gBaccarat">Baccarat</div><div class="s" data-i18n="tables4">4 tables</div></div>
+    </div>
+    <div class="tile" onclick="openGame('sicbo')">
+      <div class="art g1">🎲<div class="live-tag"><i></i><span data-i18n="live">LIVE</span></div></div>
+      <div class="info"><div class="t" data-i18n="gSicbo">Sic Bo</div><div class="s" data-i18n="tables3">3 tables</div></div>
+    </div>
+    <div class="tile" onclick="openGame('roulette')">
+      <div class="art g2">🐉<div class="live-tag"><i></i><span data-i18n="live">LIVE</span></div></div>
+      <div class="info"><div class="t" data-i18n="gDragon">Dragon &amp; Tiger</div><div class="s" data-i18n="tables2">2 tables</div></div>
+    </div>
+  </div>
+
+  <div class="section-head"><h4 data-i18n="popularSlots">Popular slots</h4><a data-i18n="seeAll" onclick="openAllGames('slots')">See all</a></div>
+  <div class="rail">
+    <div class="slot-card" onclick="openGame('slot-gem')"><div class="art">💎</div><div class="info"><div class="t" data-i18n="sGem">Gem Cascade</div><div class="s">Northgate</div></div></div>
+    <div class="slot-card" onclick="openGame('slot-lucky')"><div class="art">🍀</div><div class="info"><div class="t" data-i18n="sLucky">Lucky Reels</div><div class="s">Foxwood</div></div></div>
+    <div class="slot-card" onclick="openGame('slot-ember')"><div class="art">🔥</div><div class="info"><div class="t" data-i18n="sEmber">Ember Rush</div><div class="s">Redline</div></div></div>
+  </div>
+
+  <div class="nav">
+    <div class="item active" onclick="go('scr-lobby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1z"/></svg><span data-i18n="navHome">Home</span></div>
+    <div class="item" onclick="go('scr-wallet')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg><span data-i18n="navWallet">Wallet</span></div>
+    <div class="item" onclick="go('scr-support')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/></svg><span data-i18n="navSupport">Support</span></div>
+    <div class="item" onclick="go('scr-profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4 20c1.8-4 5-6 8-6s6.2 2 8 6"/></svg><span data-i18n="navProfile">Profile</span></div>
+  </div>
+</div>
+
+<!-- ============ GAME SCREEN ============ -->
+<div class="screen no-nav" id="scr-game">
+  <div class="statusbar"><span>11:29</span><span>◎ ⌁ ⚡</span></div>
+  <div class="topnav">
+    <div class="left"><div class="icon-btn" onclick="go('scr-lobby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg></div><h2 id="gameTitle">Roulette</h2></div>
+    <div class="game-bal">$2,430.00</div>
+  </div>
+
+  <div class="media">
+    <div class="live-tag"><i></i><span data-i18n="live">LIVE</span></div>
+    <div id="mediaWheel" class="wheel"></div>
+    <div id="mediaCards" class="cards-face" style="display:none;">🂡 🂮</div>
+    <div id="mediaDice" class="dice-face" style="display:none;">🎲 🎲 🎲</div>
+    <div class="dealer" id="dealerName" data-i18n="dealer">Dealer: Mireille</div>
+  </div>
+
+  <div class="history">
+    <div class="n red">14</div><div class="n black">2</div><div class="n g">0</div><div class="n red">27</div>
+    <div class="n black">11</div><div class="n black">33</div><div class="n red">9</div>
+  </div>
+
+  <!-- table boards -->
+  <div class="board-wrap" id="tableBoards">
+    <div class="board" id="board-roulette">
+      <div class="row0"><div class="zero">0</div></div>
+      <div class="numgrid">
+        <div class="cell red">1</div><div class="cell black">2</div><div class="cell red">3</div><div class="cell black">4</div>
+        <div class="cell red">5</div><div class="cell black">6</div><div class="cell red">7</div><div class="cell black">8</div>
+        <div class="cell red">9</div><div class="cell black">10</div><div class="cell black">11</div><div class="cell red">12</div>
+        <div class="cell black">13</div><div class="cell red">14</div><div class="cell black">15</div><div class="cell red">16</div>
+        <div class="cell black">17</div><div class="cell red">18</div><div class="cell red">19</div><div class="cell black">20</div>
+        <div class="cell red">21</div><div class="cell black">22</div><div class="cell red">23</div><div class="cell black">24</div>
+      </div>
+      <div class="outside"><div data-i18n="oLow">1–18</div><div data-i18n="oEven">Even</div><div data-i18n="oRed">Red</div><div data-i18n="oBlack">Black</div><div data-i18n="oOdd">Odd</div><div data-i18n="oHigh">19–36</div></div>
+    </div>
+    <div class="board" id="board-baccarat">
+      <div class="bacc-opts">
+        <div class="player" data-i18n="bPlayer">Player</div>
+        <div class="tie" data-i18n="bTie">Tie</div>
+        <div class="banker" data-i18n="bBanker">Banker</div>
+      </div>
+    </div>
+    <div class="board" id="board-sicbo">
+      <div class="sicbo-opts">
+        <div data-i18n="sBig">Big</div><div data-i18n="sSmall">Small</div><div data-i18n="sTriple">Any triple</div>
+        <div data-i18n="sOdd">Odd</div><div data-i18n="sEven">Even</div><div data-i18n="sSpecific">Specific number</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- slot reels -->
+  <div class="reels" id="slotReels">
+    <div class="reel"><div class="sym">💎</div><div class="sym win">🔔</div><div class="sym">⭐</div></div>
+    <div class="reel"><div class="sym">🍇</div><div class="sym win">🔔</div><div class="sym">💎</div></div>
+    <div class="reel"><div class="sym">⭐</div><div class="sym win">🔔</div><div class="sym">🍇</div></div>
+    <div class="reel"><div class="sym">🔔</div><div class="sym">💎</div><div class="sym">⭐</div></div>
+    <div class="reel"><div class="sym">🍇</div><div class="sym">⭐</div><div class="sym">💎</div></div>
+  </div>
+  <div class="spin-lbl" id="slotResult" style="display:none;">Last win: <span id="slotWinAmt">$0.00</span></div>
+
+  <div class="chips-row" id="chipsRow">
+    <div class="chip-token c1" onclick="selectChip(this)">$1</div>
+    <div class="chip-token c2 sel" onclick="selectChip(this)">$5</div>
+    <div class="chip-token c3" onclick="selectChip(this)">$25</div>
+    <div class="chip-token c4" onclick="selectChip(this)">$100</div>
+  </div>
+
+  <div class="game-footer">
+    <div class="info"><div class="l" id="footerLabel" data-i18n="currentBet">Current bet</div><div class="v" id="footerValue">$35.00</div></div>
+    <button class="go-btn" id="actionBtn" onclick="doAction()" data-i18n="placeBet">Place bet</button>
+  </div>
+</div>
+
+<!-- ============ WALLET ============ -->
+<div class="screen" id="scr-wallet">
+  <div class="statusbar"><span>11:32</span><span>◎ ⌁ ⚡</span></div>
+  <div class="topnav">
+    <div class="left"><div class="icon-btn" onclick="go('scr-lobby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg></div><h2 data-i18n="wallet">Wallet</h2></div>
+    <div class="lang-toggle"><button class="on" onclick="setLang('en')">EN</button><button onclick="setLang('ar')">AR</button></div>
+  </div>
+  <div class="balance-card"><div class="lbl" data-i18n="available">Available balance</div><div class="amt">$2,430.00</div></div>
+  <div class="tabs">
+    <div class="t active" id="tabDeposit" onclick="setWalletTab('deposit')" data-i18n="deposit">Deposit</div>
+    <div class="t" id="tabWithdraw" onclick="setWalletTab('withdraw')" data-i18n="withdraw">Withdraw</div>
+  </div>
+  <div class="section-head" style="padding-top:18px;"><h4 data-i18n="quickAmount">Quick amount</h4></div>
+  <div class="amounts">
+    <div class="a">$50</div><div class="a sel">$100</div><div class="a">$250</div>
+    <div class="a">$500</div><div class="a">$1,000</div><div class="a" data-i18n="custom">Custom</div>
+  </div>
+  <button class="btn-primary" style="margin:22px 20px 0;" data-i18n="continueMethod" onclick="go('scr-deposit')">Continue to payment method</button>
+</div>
+
+<!-- ============ DEPOSIT / WITHDRAW METHOD ============ -->
+<div class="screen" id="scr-deposit">
+  <div class="statusbar"><span>11:33</span><span>◎ ⌁ ⚡</span></div>
+  <div class="topnav">
+    <div class="left"><div class="icon-btn" onclick="go('scr-wallet')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg></div><h2 id="methodTitle" data-i18n="chooseMethod">Choose a deposit method</h2></div>
+  </div>
+  <div class="method open" id="crypto">
+    <div class="head" onclick="toggleMethod('crypto')">
+      <div class="ic">₿</div>
+      <div><div class="t" data-i18n="crypto">Cryptocurrency</div><div class="s" data-i18n="cryptoSub">USDT, BTC, ETH · usually instant</div></div>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+    <div class="panel"><div class="panel-inner">
+      <div class="coin-row"><div class="coin sel">USDT</div><div class="coin">BTC</div><div class="coin">ETH</div></div>
+      <div class="qr" data-i18n="qrCode">QR code</div>
+      <div class="addr"><span>TXn9f...4kLQ82pR (TRC20)</span><button data-i18n="copy">Copy</button></div>
+      <div class="note" data-i18n="cryptoNote">Send only USDT on the TRC20 network to this address. Deposits typically confirm within 10–20 minutes.</div>
+    </div></div>
+  </div>
+  <div class="method" id="agent">
+    <div class="head" onclick="toggleMethod('agent')">
+      <div class="ic">🤝</div>
+      <div><div class="t" data-i18n="agent">Local agent</div><div class="s" data-i18n="agentSub">Cash or transfer via a verified agent</div></div>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+    <div class="panel"><div class="panel-inner">
+      <div class="agent-card">
+        <div class="row"><div><div class="name">Agent #A-1042</div><div class="meta" data-i18n="agentMeta">Avg. response 3 min · 1,204 deposits</div></div><div class="status" data-i18n="online">Online</div></div>
+        <button id="agentBtn" onclick="showToast(currentLang==='ar' ? 'تم إرسال الكود، تحقق من إشعاراتك' : 'Code sent — check your notifications')" data-i18n="requestCode">Request deposit code</button>
+        <div class="agent-divider" data-i18n="orChatAgent">or message the agent directly</div>
+        <div class="agent-chat-row">
+          <a class="wa-btn" href="https://wa.me/15550142000" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5.1-1.3A10 10 0 1012 2zm5.8 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-3.2-.7-2.7-1-4.4-3.7-4.6-3.9-.1-.2-1.1-1.5-1.1-2.8 0-1.3.7-2 .9-2.2.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.4.2.5.7 1.7.8 1.9.1.2.1.4 0 .6-.1.2-.2.3-.4.5-.2.2-.4.4-.5.6-.2.2-.4.4-.2.7.2.4 1 1.6 2.1 2.5 1.4 1.2 2.5 1.6 2.9 1.8.4.2.6.1.8-.1.2-.3.9-1 1.1-1.4.2-.3.5-.3.8-.2.3.1 2 .9 2.3 1.1.3.2.5.3.6.4.1.2.1.9-.1 1.4z"/></svg>
+            <span data-i18n="chatWhatsapp">WhatsApp</span>
+          </a>
+          <a class="tg-btn" href="https://t.me/AurumAgent_A1042" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 3.3L2.5 11c-.9.4-.9 1.6.1 1.9l4.8 1.5 1.8 5.8c.3.9 1.4 1.1 2 .4l2.7-2.9 4.8 3.6c.8.6 1.9.1 2.1-.8l3-16.3c.2-1-.8-1.8-1.9-1.9zM8.6 13.9l8.6-6.2c.3-.2.6.2.3.5l-7 6.6-.3 3.4-1.6-4.3z"/></svg>
+            <span data-i18n="chatTelegram">Telegram</span>
+          </a>
+        </div>
+      </div>
+      <div class="note" data-i18n="agentNote">Share your deposit code with the agent only. Never send funds before a code is issued in-app.</div>
+    </div></div>
+  </div>
+  <button class="btn-primary" style="margin:22px 20px 0;" id="confirmMethodBtn" data-i18n="confirmMethod" onclick="confirmDeposit()">Confirm method</button>
+</div>
+
+<!-- ============ ALL GAMES (See all) ============ -->
+<div class="screen no-nav" id="scr-allgames">
+  <div class="statusbar"><span>11:38</span><span>◎ ⌁ ⚡</span></div>
+  <div class="topnav">
+    <div class="left"><div class="icon-btn" onclick="go('scr-lobby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg></div><h2 id="allGamesTitle">All live tables</h2></div>
+  </div>
+  <div class="allgames-grid" id="allGamesGrid"></div>
+</div>
+
+<!-- ============ PROFILE ============ -->
+<div class="screen" id="scr-profile">
+  <div class="statusbar"><span>11:40</span><span>◎ ⌁ ⚡</span></div>
+  <div class="topnav">
+    <div class="left"><div class="icon-btn" onclick="go('scr-lobby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg></div><h2 data-i18n="myProfile">My profile</h2></div>
+    <div class="lang-toggle"><button class="on" onclick="setLang('en')">EN</button><button onclick="setLang('ar')">AR</button></div>
+  </div>
+
+  <div class="profile-hero">
+    <div class="av">A</div>
+    <div class="nm">Alex Morgan</div>
+    <div class="em">alex.morgan@example.com</div>
+    <div class="badges">
+      <div class="badge vip">★ <span data-i18n="vipGold">VIP Gold</span></div>
+      <div class="badge verified">✓ <span data-i18n="verified">Verified</span></div>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-box"><div class="l" data-i18n="balance">Balance</div><div class="v" style="color:var(--gold-bright);">$2,430.00</div></div>
+    <div class="stat-box"><div class="l" data-i18n="memberSince">Member since</div><div class="v">Mar 2024</div></div>
+    <div class="stat-box"><div class="l" data-i18n="totalDeposited">Total deposited</div><div class="v">$18,650</div></div>
+    <div class="stat-box"><div class="l" data-i18n="gamesPlayed">Games played</div><div class="v">1,284</div></div>
+  </div>
+
+  <div class="quick-row">
+    <button data-i18n="deposit" onclick="go('scr-wallet')">Deposit</button>
+    <button data-i18n="withdraw" onclick="go('scr-wallet')">Withdraw</button>
+    <button data-i18n="support" onclick="go('scr-support')">Support</button>
+  </div>
+
+  <div class="section-head"><h4 data-i18n="accountDetails">Account details</h4></div>
+  <div class="info-list">
+    <div class="row"><div class="k" data-i18n="fullName">Full name</div><div class="v">Alex Morgan</div></div>
+    <div class="row"><div class="k" data-i18n="email">Email</div><div class="v">alex.morgan@example.com</div></div>
+    <div class="row"><div class="k" data-i18n="phone">Phone</div><div class="v">+1 555 019 4432</div></div>
+    <div class="row"><div class="k" data-i18n="country">Country</div><div class="v">United States</div></div>
+    <div class="row"><div class="k" data-i18n="currency">Currency</div><div class="v">USD</div></div>
+  </div>
+
+  <div class="section-head"><h4 data-i18n="settings">Settings</h4></div>
+  <div class="settings-list">
+    <div class="row"><div><div class="t" data-i18n="twoFA">Two-factor authentication</div><div class="s" data-i18n="twoFAs">Extra security on every login</div></div><div class="sw on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="row"><div><div class="t" data-i18n="emailNotif">Email notifications</div><div class="s" data-i18n="emailNotifs">Deposits, promotions, alerts</div></div><div class="sw on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="row"><div><div class="t" data-i18n="respLimits">Responsible gaming limits</div><div class="s" data-i18n="respLimitsS">Set daily and weekly deposit caps</div></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);"><path d="M9 6l6 6-6 6"/></svg></div>
+  </div>
+
+  <button class="logout-btn" data-i18n="logOut" onclick="go('scr-home')">Log out</button>
+
+  <div class="nav">
+    <div class="item" onclick="go('scr-lobby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1z"/></svg><span data-i18n="navHome">Home</span></div>
+    <div class="item" onclick="go('scr-wallet')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg><span data-i18n="navWallet">Wallet</span></div>
+    <div class="item" onclick="go('scr-support')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/></svg><span data-i18n="navSupport">Support</span></div>
+    <div class="item active" onclick="go('scr-profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4 20c1.8-4 5-6 8-6s6.2 2 8 6"/></svg><span data-i18n="navProfile">Profile</span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="ic">✓</div><div class="msg" id="toastMsg">Done</div></div>
+
+<!-- ============ SUPPORT ============ -->
+<div class="screen" id="scr-support">
+  <div class="statusbar"><span>11:36</span><span>◎ ⌁ ⚡</span></div>
+  <div class="topnav">
+    <div class="left"><div class="icon-btn" onclick="go('scr-lobby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg></div><h2 data-i18n="support">Support</h2></div>
+    <div class="lang-toggle"><button class="on" onclick="setLang('en')">EN</button><button onclick="setLang('ar')">AR</button></div>
+  </div>
+  <div class="support-hero">
+    <div class="t" data-i18n="supportHeroT">Need a hand?</div>
+    <div class="s" data-i18n="supportHeroS">Our team is online now — average reply under 2 minutes.</div>
+    <button data-i18n="startChat">Start live chat</button>
+  </div>
+  <div class="section-head"><h4 data-i18n="faqs">Common questions</h4></div>
+  <div class="faq">
+    <div class="row"><div class="q" data-i18n="faq1q">How long do crypto deposits take?</div><div class="a" data-i18n="faq1a">Most confirm within 10–20 minutes, depending on network traffic.</div></div>
+    <div class="row"><div class="q" data-i18n="faq2q">How do withdrawals via agent work?</div><div class="a" data-i18n="faq2a">Request a withdrawal code in-app, then present it to any verified agent.</div></div>
+    <div class="row"><div class="q" data-i18n="faq3q">Is my account secure?</div><div class="a" data-i18n="faq3a">Yes — two-factor login and encrypted sessions protect every account.</div></div>
+  </div>
+  <div class="contact-row">
+    <div class="c"><div class="ic">💬</div><div class="t" data-i18n="liveChat">Live chat</div><div class="s" data-i18n="chatAvail">Available 24/7</div></div>
+    <div class="c"><div class="ic">✉️</div><div class="t" data-i18n="email">Email</div><div class="s">support@aurumhouse.example</div></div>
+  </div>
+  <div class="nav">
+    <div class="item" onclick="go('scr-lobby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1z"/></svg><span data-i18n="navHome">Home</span></div>
+    <div class="item" onclick="go('scr-wallet')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg><span data-i18n="navWallet">Wallet</span></div>
+    <div class="item active" onclick="go('scr-support')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/></svg><span data-i18n="navSupport">Support</span></div>
+    <div class="item" onclick="go('scr-profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4 20c1.8-4 5-6 8-6s6.2 2 8 6"/></svg><span data-i18n="navProfile">Profile</span></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ---------------- navigation ---------------- */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#'+id+' .nav .item').forEach(n=>n.classList.remove('active'));
+  window.scrollTo(0,0);
+}
+
+/* ---------------- language ---------------- */
+const translations = {
+  en:{
+    brand:"Aurum House", homeTag:"Live dealer tables, slots and sports — one account, instant play.",
+    signUp:"Sign up", logIn:"Log in",
+    feat1t:"Live dealers, 24/7", feat1s:"Real tables streamed in HD, no waiting.",
+    feat2t:"Crypto or local agent", feat2s:"Deposit and withdraw the way that suits you.",
+    feat3t:"Support that answers", feat3s:"Live chat, typically under 2 minutes.",
+    guestLine:"Just exploring? ", guestLink:"Browse the lobby",
+    createAccount:"Create account", fullName:"Full name", fullNamePh:"Alex Morgan", email:"Email", password:"Password",
+    agreeTerms:"I confirm I'm 18+ and agree to the Terms", createAccountBtn:"Create account",
+    haveAccount:"Already have an account? ", logIn2:"Log in",
+    welcomeBack:"Welcome back", keepSignedIn:"Keep me signed in", logInBtn:"Log in",
+    noAccount:"New here? ", signUp2:"Create an account",
+    welcome:"Welcome back", balance:"Balance", deposit:"Deposit",
+    categories:"Categories", chipLive:"🎥 Live Casino", chipSlots:"🎰 Slots", chipSports:"🏆 Sports", chipTable:"🃏 Table",
+    liveNow:"Live now", seeAll:"See all", live:"LIVE",
+    gRoulette:"Roulette", gBaccarat:"Baccarat", gSicbo:"Sic Bo", gDragon:"Dragon & Tiger",
+    tables6:"6 tables", tables4:"4 tables", tables3:"3 tables", tables2:"2 tables",
+    popularSlots:"Popular slots", sGem:"Gem Cascade", sLucky:"Lucky Reels", sEmber:"Ember Rush",
+    navHome:"Home", navWallet:"Wallet", navSupport:"Support", navProfile:"Profile",
+    dealer:"Dealer: Mireille",
+    oLow:"1–18", oEven:"Even", oRed:"Red", oBlack:"Black", oOdd:"Odd", oHigh:"19–36",
+    bPlayer:"Player", bTie:"Tie", bBanker:"Banker",
+    sBig:"Big", sSmall:"Small", sTriple:"Any triple", sOdd:"Odd", sEven:"Even", sSpecific:"Specific number",
+    currentBet:"Current bet", placeBet:"Place bet", spin:"Spin", deal:"Deal", roll:"Roll",
+    wallet:"Wallet", available:"Available balance", withdraw:"Withdraw", quickAmount:"Quick amount", custom:"Custom",
+    continueMethod:"Continue to payment method",
+    chooseMethod:"Choose a deposit method", chooseMethodW:"Choose a withdrawal method",
+    crypto:"Cryptocurrency", cryptoSub:"USDT, BTC, ETH · usually instant",
+    qrCode:"QR code", copy:"Copy",
+    cryptoNote:"Send only USDT on the TRC20 network to this address. Deposits typically confirm within 10–20 minutes.",
+    cryptoNoteW:"Withdrawals are sent to your saved wallet address after a quick security check.",
+    agent:"Local agent", agentSub:"Cash or transfer via a verified agent",
+    agentMeta:"Avg. response 3 min · 1,204 deposits", online:"Online",
+    requestCode:"Request deposit code", requestCodeW:"Request withdrawal code",
+    agentNote:"Share your deposit code with the agent only. Never send funds before a code is issued in-app.",
+    agentNoteW:"Share your withdrawal code with the agent only after you receive your cash.",
+    confirmMethod:"Confirm method",
+    support:"Support", supportHeroT:"Need a hand?", supportHeroS:"Our team is online now — average reply under 2 minutes.",
+    startChat:"Start live chat", faqs:"Common questions",
+    faq1q:"How long do crypto deposits take?", faq1a:"Most confirm within 10–20 minutes, depending on network traffic.",
+    faq2q:"How do withdrawals via agent work?", faq2a:"Request a withdrawal code in-app, then present it to any verified agent.",
+    faq3q:"Is my account secure?", faq3a:"Yes — two-factor login and encrypted sessions protect every account.",
+    liveChat:"Live chat", chatAvail:"Available 24/7",
+    orChatAgent:"or message the agent directly", chatWhatsapp:"WhatsApp", chatTelegram:"Telegram",
+    allLiveTitle:"All live tables", allSlotsTitle:"All slots", playNow:"Play now",
+    myProfile:"My profile", vipGold:"VIP Gold", verified:"Verified", memberSince:"Member since",
+    totalDeposited:"Total deposited", gamesPlayed:"Games played", accountDetails:"Account details",
+    phone:"Phone", country:"Country", currency:"Currency", settings:"Settings",
+    twoFA:"Two-factor authentication", twoFAs:"Extra security on every login",
+    emailNotif:"Email notifications", emailNotifs:"Deposits, promotions, alerts",
+    respLimits:"Responsible gaming limits", respLimitsS:"Set daily and weekly deposit caps",
+    logOut:"Log out", depositSubmitted:"Deposit request submitted — funds arrive shortly"
+  },
+  ar:{
+    brand:"أورم هاوس", homeTag:"طاولات مباشرة، سلوتس، ورياضة — حساب واحد ولعب فوري.",
+    signUp:"إنشاء حساب", logIn:"تسجيل الدخول",
+    feat1t:"موزّعون مباشرون على مدار الساعة", feat1s:"طاولات حقيقية ببث عالي الجودة، بلا انتظار.",
+    feat2t:"عملات رقمية أو وكيل محلي", feat2s:"أودع واسحب بالطريقة التي تناسبك.",
+    feat3t:"دعم فني سريع", feat3s:"محادثة مباشرة، عادة أقل من دقيقتين.",
+    guestLine:"مجرد استكشاف؟ ", guestLink:"تصفّح الصالة",
+    createAccount:"إنشاء حساب", fullName:"الاسم الكامل", fullNamePh:"محمد أحمد", email:"البريد الإلكتروني", password:"كلمة المرور",
+    agreeTerms:"أؤكد أن عمري 18+ وأوافق على الشروط", createAccountBtn:"إنشاء حساب",
+    haveAccount:"لديك حساب بالفعل؟ ", logIn2:"تسجيل الدخول",
+    welcomeBack:"مرحبًا بعودتك", keepSignedIn:"إبقني مسجلاً للدخول", logInBtn:"تسجيل الدخول",
+    noAccount:"جديد هنا؟ ", signUp2:"أنشئ حسابًا",
+    welcome:"مرحبًا بعودتك", balance:"الرصيد", deposit:"إيداع",
+    categories:"الفئات", chipLive:"🎥 كازينو مباشر", chipSlots:"🎰 سلوتس", chipSports:"🏆 رياضة", chipTable:"🃏 طاولات",
+    liveNow:"مباشر الآن", seeAll:"عرض الكل", live:"مباشر",
+    gRoulette:"روليت", gBaccarat:"باكارات", gSicbo:"سيك بو", gDragon:"التنين والنمر",
+    tables6:"6 طاولات", tables4:"4 طاولات", tables3:"3 طاولات", tables2:"طاولتان",
+    popularSlots:"سلوتس شائعة", sGem:"جيم كاسكيد", sLucky:"لاكي ريلز", sEmber:"إمبر راش",
+    navHome:"الرئيسية", navWallet:"المحفظة", navSupport:"الدعم", navProfile:"الملف الشخصي",
+    dealer:"الموزّعة: ميراي",
+    oLow:"1–18", oEven:"زوجي", oRed:"أحمر", oBlack:"أسود", oOdd:"فردي", oHigh:"19–36",
+    bPlayer:"اللاعب", bTie:"تعادل", bBanker:"البنكر",
+    sBig:"كبير", sSmall:"صغير", sTriple:"أي ثلاثية", sOdd:"فردي", sEven:"زوجي", sSpecific:"رقم محدد",
+    currentBet:"الرهان الحالي", placeBet:"ضع الرهان", spin:"دوران", deal:"توزيع", roll:"رمي",
+    wallet:"المحفظة", available:"الرصيد المتاح", withdraw:"سحب", quickAmount:"مبلغ سريع", custom:"مخصص",
+    continueMethod:"المتابعة إلى طريقة الدفع",
+    chooseMethod:"اختر طريقة الإيداع", chooseMethodW:"اختر طريقة السحب",
+    crypto:"عملات رقمية", cryptoSub:"USDT، BTC، ETH · عادة فوري",
+    qrCode:"رمز QR", copy:"نسخ",
+    cryptoNote:"أرسل USDT فقط عبر شبكة TRC20 إلى هذا العنوان. يتم تأكيد الإيداع عادة خلال 10–20 دقيقة.",
+    cryptoNoteW:"تُرسل السحوبات إلى عنوان محفظتك المحفوظ بعد تحقق أمني سريع.",
+    agent:"وكيل محلي", agentSub:"نقدًا أو تحويلاً عبر وكيل موثّق",
+    agentMeta:"متوسط الاستجابة 3 دقائق · 1,204 عملية إيداع", online:"متصل الآن",
+    requestCode:"طلب كود إيداع", requestCodeW:"طلب كود سحب",
+    agentNote:"شارك كود الإيداع مع الوكيل فقط. لا ترسل أي أموال قبل صدور الكود داخل التطبيق.",
+    agentNoteW:"شارك كود السحب مع الوكيل فقط بعد استلام النقد.",
+    confirmMethod:"تأكيد الطريقة",
+    support:"الدعم الفني", supportHeroT:"تحتاج مساعدة؟", supportHeroS:"فريقنا متصل الآن — متوسط الرد أقل من دقيقتين.",
+    startChat:"ابدأ محادثة مباشرة", faqs:"أسئلة شائعة",
+    faq1q:"كم يستغرق إيداع العملات الرقمية؟", faq1a:"تتأكد معظم العمليات خلال 10–20 دقيقة حسب ازدحام الشبكة.",
+    faq2q:"كيف يعمل السحب عبر الوكيل؟", faq2a:"اطلب كود سحب من داخل التطبيق، ثم قدّمه لأي وكيل موثّق.",
+    faq3q:"هل حسابي آمن؟", faq3a:"نعم — تسجيل دخول بخطوتين وجلسات مشفّرة تحمي كل حساب.",
+    liveChat:"محادثة مباشرة", chatAvail:"متاح على مدار الساعة",
+    orChatAgent:"أو راسل الوكيل مباشرة", chatWhatsapp:"واتساب", chatTelegram:"تيليجرام",
+    allLiveTitle:"كل الطاولات المباشرة", allSlotsTitle:"كل السلوتس", playNow:"العب الآن",
+    myProfile:"ملفي الشخصي", vipGold:"VIP ذهبي", verified:"موثّق", memberSince:"عضو منذ",
+    totalDeposited:"إجمالي الإيداعات", gamesPlayed:"الألعاب الملعوبة", accountDetails:"بيانات الحساب",
+    phone:"الهاتف", country:"الدولة", currency:"العملة", settings:"الإعدادات",
+    twoFA:"التحقق بخطوتين", twoFAs:"أمان إضافي في كل تسجيل دخول",
+    emailNotif:"إشعارات البريد الإلكتروني", emailNotifs:"الإيداعات والعروض والتنبيهات",
+    respLimits:"حدود اللعب المسؤول", respLimitsS:"حدد سقف الإيداع اليومي والأسبوعي",
+    logOut:"تسجيل الخروج", depositSubmitted:"تم إرسال طلب الإيداع — ستصل الأموال قريبًا"
+  }
+};
+let currentLang = 'en';
+function setLang(l){
+  currentLang = l;
+  document.body.classList.toggle('rtl', l==='ar');
+  document.body.setAttribute('dir', l==='ar' ? 'rtl' : 'ltr');
+  document.querySelectorAll('.lang-toggle button').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.lang-toggle button').forEach(b=>{ if(b.textContent.trim()===l.toUpperCase()) b.classList.add('on'); });
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k = el.getAttribute('data-i18n');
+    if(translations[l][k]!==undefined) el.textContent = translations[l][k];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const k = el.getAttribute('data-i18n-ph');
+    if(translations[l][k]!==undefined) el.setAttribute('placeholder', translations[l][k]);
+  });
+  refreshMethodTexts();
+}
+
+/* ---------------- game screen ---------------- */
+const GAMES = {
+  roulette:{title:{en:'Roulette',ar:'روليت'}, variant:'roulette', cat:'live', art:'🎡', tables:{en:'6 tables',ar:'6 طاولات'}},
+  baccarat:{title:{en:'Baccarat',ar:'باكارات'}, variant:'baccarat', cat:'live', art:'🂡', tables:{en:'4 tables',ar:'4 طاولات'}},
+  sicbo:{title:{en:'Sic Bo',ar:'سيك بو'}, variant:'sicbo', cat:'live', art:'🎲', tables:{en:'3 tables',ar:'3 طاولات'}},
+  dragon:{title:{en:'Dragon & Tiger',ar:'التنين والنمر'}, variant:'baccarat', cat:'live', art:'🐉', tables:{en:'2 tables',ar:'طاولتان'}},
+  andarbahar:{title:{en:'Andar Bahar',ar:'أندر بهار'}, variant:'sicbo', cat:'live', art:'🃏', tables:{en:'2 tables',ar:'طاولتان'}},
+  speedroulette:{title:{en:'Speed Roulette',ar:'روليت سريع'}, variant:'roulette', cat:'live', art:'⚡', tables:{en:'3 tables',ar:'3 طاولات'}},
+  'slot-gem':{title:{en:'Gem Cascade',ar:'جيم كاسكيد'}, variant:'slot', cat:'slots', art:'💎', provider:'Northgate'},
+  'slot-lucky':{title:{en:'Lucky Reels',ar:'لاكي ريلز'}, variant:'slot', cat:'slots', art:'🍀', provider:'Foxwood'},
+  'slot-ember':{title:{en:'Ember Rush',ar:'إمبر راش'}, variant:'slot', cat:'slots', art:'🔥', provider:'Redline'},
+  'slot-mystic':{title:{en:'Mystic Orb',ar:'ميستيك أورب'}, variant:'slot', cat:'slots', art:'🔮', provider:'Northgate'},
+  'slot-golden':{title:{en:'Golden Pharaoh',ar:'الفرعون الذهبي'}, variant:'slot', cat:'slots', art:'👑', provider:'Redline'},
+  'slot-wild':{title:{en:'Wild Safari',ar:'وايلد سفاري'}, variant:'slot', cat:'slots', art:'🦁', provider:'Foxwood'},
+  'slot-treasure':{title:{en:'Treasure Cove',ar:'خليج الكنز'}, variant:'slot', cat:'slots', art:'🏴‍☠️', provider:'Northgate'}
+};
+
+function openAllGames(cat){
+  const grid = document.getElementById('allGamesGrid');
+  document.getElementById('allGamesTitle').textContent = cat==='live' ? translations[currentLang].allLiveTitle : translations[currentLang].allSlotsTitle;
+  grid.innerHTML = '';
+  Object.keys(GAMES).filter(id => GAMES[id].cat === cat).forEach(id=>{
+    const g = GAMES[id];
+    const div = document.createElement('div');
+    if(cat === 'live'){
+      div.className = 'tile';
+      div.innerHTML = '<div class="art g1">'+g.art+'<div class="live-tag"><i></i><span>'+translations[currentLang].live+'</span></div></div>'
+        + '<div class="info"><div class="t">'+g.title[currentLang]+'</div><div class="s">'+g.tables[currentLang]+'</div></div>';
+    } else {
+      div.className = 'tile';
+      div.innerHTML = '<div class="art g2">'+g.art+'</div>'
+        + '<div class="info"><div class="t">'+g.title[currentLang]+'</div><div class="s">'+g.provider+'</div></div>';
+    }
+    div.onclick = ()=>openGame(id);
+    grid.appendChild(div);
+  });
+  go('scr-allgames');
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+function confirmDeposit(){
+  showToast(translations[currentLang].depositSubmitted);
+  setTimeout(()=>go('scr-wallet'), 900);
+}
+function openGame(id){
+  const g = GAMES[id];
+  document.getElementById('gameTitle').textContent = g.title[currentLang];
+  const isSlot = g.variant === 'slot';
+
+  document.getElementById('tableBoards').style.display = isSlot ? 'none' : 'block';
+  document.getElementById('slotReels').classList.toggle('on', isSlot);
+  document.getElementById('slotResult').style.display = isSlot ? 'block' : 'none';
+  document.querySelector('.history').style.display = isSlot ? 'none' : 'flex';
+  document.querySelector('.media').style.height = isSlot ? '0px' : '180px';
+  document.querySelector('.media').style.margin = isSlot ? '0' : '10px 18px 0';
+  document.querySelector('.media').style.opacity = isSlot ? '0' : '1';
+
+  document.getElementById('mediaWheel').style.display = g.variant==='roulette' ? 'block' : 'none';
+  document.getElementById('mediaCards').style.display = g.variant==='baccarat' ? 'flex' : 'none';
+  document.getElementById('mediaDice').style.display = g.variant==='sicbo' ? 'flex' : 'none';
+
+  document.querySelectorAll('.board').forEach(b=>b.classList.remove('on'));
+  if(!isSlot) document.getElementById('board-'+g.variant).classList.add('on');
+
+  const actionBtn = document.getElementById('actionBtn');
+  const labels = { roulette:'placeBet', baccarat:'deal', sicbo:'roll', slot:'spin' };
+  actionBtn.setAttribute('data-i18n', labels[g.variant]);
+  actionBtn.textContent = translations[currentLang][labels[g.variant]];
+  document.getElementById('chipsRow').style.display = isSlot ? 'none' : 'flex';
+
+  go('scr-game');
+}
+
+function selectChip(el){
+  document.querySelectorAll('.chip-token').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+const symbols = ['💎','🔔','⭐','🍇','🍋','7️⃣'];
+function doAction(){
+  const variant = document.getElementById('board-roulette').classList.contains('on') ? 'roulette'
+    : document.getElementById('board-baccarat').classList.contains('on') ? 'baccarat'
+    : document.getElementById('board-sicbo').classList.contains('on') ? 'sicbo'
+    : 'slot';
+
+  if(variant === 'slot'){
+    document.querySelectorAll('#slotReels .sym').forEach(s=>{ s.style.opacity='0.25'; s.style.transform='scale(.9)'; });
+    setTimeout(()=>{
+      document.querySelectorAll('#slotReels .sym').forEach(s=>{
+        s.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+        s.style.opacity='1'; s.style.transform='scale(1)';
+        s.classList.remove('win');
+      });
+      const win = (Math.random()*40).toFixed(2);
+      document.getElementById('slotWinAmt').textContent = '$'+win;
+      if(win > 15){
+        document.querySelectorAll('#slotReels .reel')[1].querySelectorAll('.sym')[1].classList.add('win');
+        document.querySelectorAll('#slotReels .reel')[2].querySelectorAll('.sym')[1].classList.add('win');
+      }
+    }, 450);
+  } else if(variant === 'roulette'){
+    const wheel = document.getElementById('mediaWheel');
+    const deg = 1440 + Math.floor(Math.random()*360);
+    wheel.style.transform = 'rotate('+deg+'deg)';
+    const num = Math.floor(Math.random()*37);
+    setTimeout(()=>{
+      const hist = document.querySelector('.history');
+      const cls = num===0 ? 'g' : (num%2===0 ? 'black':'red');
+      const div = document.createElement('div');
+      div.className = 'n '+cls; div.textContent = num;
+      hist.prepend(div);
+    }, 2200);
+  } else if(variant === 'baccarat'){
+    const faces = ['🂡','🂮','🃁','🃎','🂱','🂽'];
+    document.getElementById('mediaCards').innerHTML =
+      faces[Math.floor(Math.random()*faces.length)] + ' ' + faces[Math.floor(Math.random()*faces.length)];
+  } else if(variant === 'sicbo'){
+    const d = ()=>Math.floor(Math.random()*6)+1;
+    document.getElementById('mediaDice').textContent = '⚀⚁⚂⚃⚄⚅'[d()-1]+' '+'⚀⚁⚂⚃⚄⚅'[d()-1]+' '+'⚀⚁⚂⚃⚄⚅'[d()-1];
+  }
+}
+
+/* ---------------- wallet ---------------- */
+function setWalletTab(t){
+  document.getElementById('tabDeposit').classList.toggle('active', t==='deposit');
+  document.getElementById('tabWithdraw').classList.toggle('active', t==='withdraw');
+  withdrawMode = (t==='withdraw');
+}
+let withdrawMode = false;
+
+/* ---------------- deposit/withdraw method panel ---------------- */
+function toggleMethod(id){
+  document.querySelectorAll('.method').forEach(m=>{
+    if(m.id===id) m.classList.toggle('open'); else m.classList.remove('open');
+  });
+}
+function refreshMethodTexts(){
+  const t = translations[currentLang];
+  document.getElementById('methodTitle').textContent = withdrawMode ? t.chooseMethodW : t.chooseMethod;
+  document.querySelector('#crypto .note').textContent = withdrawMode ? t.cryptoNoteW : t.cryptoNote;
+  document.getElementById('agentBtn').textContent = withdrawMode ? t.requestCodeW : t.requestCode;
+  document.querySelector('#agent .note').textContent = withdrawMode ? t.agentNoteW : t.agentNote;
+}
+document.getElementById('scr-wallet').addEventListener('click', ()=>{}, true);
+const depositBtn = document.querySelector('#scr-wallet .btn-primary');
+depositBtn.addEventListener('click', ()=>{ setTimeout(refreshMethodTexts, 0); });
+
+setLang('en');
+</script>
+</body>
+</html>
